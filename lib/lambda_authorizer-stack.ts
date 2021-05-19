@@ -5,7 +5,7 @@ import * as cdk from '@aws-cdk/core';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as apigw from '@aws-cdk/aws-apigateway';
 import * as iam from '@aws-cdk/aws-iam';
-
+import * as cognito from '@aws-cdk/aws-cognito';
 export class LambdaAuthorizerStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -57,6 +57,18 @@ export class LambdaAuthorizerStack extends cdk.Stack {
      authorizationType: apigw.AuthorizationType.CUSTOM,
      authorizer: { authorizerId :auth.ref}
    });
+
+
+  //  ***************************** COGNITO AUTHORIZER ********************************************
+
+  // user pool with email sign in
+
+  const userPool = new cognito.UserPool(this, "tciq_dev_user_pool",{
+    signInAliases:{
+      email: true
+    },
+    userPoolName: "TCIQ Development Pool"
+  })
    
 
 
