@@ -124,12 +124,29 @@ export class LambdaAuthorizerStack extends cdk.Stack {
 
     let item3 = api.root.addResource("api_key");
     item3.addMethod("get", new apigw.LambdaIntegration(helloWorld),{
-     
+     apiKeyRequired:true,
     })
 
-    const apikeyName = "tciq_api_key";
+    const apiKeyName = "tciq_api_key";
 
-    const apiKey = new apigw.ApiKey(this, "api_key",)
+    const apiKey = new apigw.ApiKey(this, "api_key",{
+      apiKeyName,
+      enabled: true,
+      description: "TCIQ API Key to create usage plane"
+
+    })
+
+    api.addApiKey("tciq_api_key_added",{
+      apiKeyName: "hello_world",
+    })
+  
+    api.addUsagePlan("tciq_usage_plan",{
+      name: "tciq_usage_plane",
+      apiKey,
+      apiStages: [{api: api, stage: api.deploymentStage}],
+      throttle: { burstLimit: 500, rateLimit: 1000},
+      quota: { limit: 1000, period: apigw.Period.MONTH}
+    })
 
 
     // output
@@ -140,5 +157,7 @@ export class LambdaAuthorizerStack extends cdk.Stack {
     new cdk.CfnOutput(this, "cognito auth api",{
       value: item2.resourceId
     })
+
+    
   }
 }
