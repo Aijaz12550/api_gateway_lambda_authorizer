@@ -1,0 +1,21 @@
+input productInput {
+  id: ID
+  name: String
+  owner: ID
+}
+
+type productType {
+  id: ID
+  name: String
+  owner: ID
+  createdOn: AWSTimestamp
+  soldQuantity: Int
+}
+
+type Query {
+  getProducts(input: productInput): [productType]
+}
+
+type Mutation {
+    addProduct(input: productInput): productType
+}

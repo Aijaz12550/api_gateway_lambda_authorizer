@@ -6,13 +6,17 @@ import * as lambda from "@aws-cdk/aws-lambda";
 import * as apigw from "@aws-cdk/aws-apigateway";
 import * as iam from "@aws-cdk/aws-iam";
 import * as cognito from "@aws-cdk/aws-cognito";
-import { dynamodb_stack } from "./dynamodb"
+import { dynamodb_stack } from "./dynamodb";
+import { AppsyncApi } from "./appsync"
 export class LambdaAuthorizerStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     // dynamo tables
-    let dynamoTable = new dynamodb_stack(this as any,"table")
+    let dynamoTable = new dynamodb_stack(this as any,"table");
+
+    // Appsync api
+    let appsyncApi = new AppsyncApi(this as any , "appsync_api");
 
     const queue = new sqs.Queue(this, "LambdaAuthorizerQueue", {
       visibilityTimeout: cdk.Duration.seconds(300),
@@ -104,7 +108,7 @@ export class LambdaAuthorizerStack extends cdk.Stack {
       lambdaTriggers:{
         preSignUp: helloWorld,
       },
-
+      removalPolicy: cdk.RemovalPolicy.DESTROY // not recommended for production
 
     });
 
@@ -164,6 +168,10 @@ export class LambdaAuthorizerStack extends cdk.Stack {
 
     new cdk.CfnOutput(this,"table_out",{
       value: dynamoTable.tableName
+    });
+
+    new cdk.CfnOutput(this, "appsync_api_endpoint",{
+      value: appsyncApi.api_endpoint
     })
 
     
