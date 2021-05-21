@@ -1,13 +1,17 @@
 import * as cdk from "@aws-cdk/core";
 import * as appsync from "@aws-cdk/aws-appsync";
 
-export class appsync_api extends cdk.Construct {
+export class AppsyncApi extends cdk.Construct {
+
+    public readonly api_endpoint: string
+    public readonly apiKey: string
+
     constructor(scope: cdk.App, id: string, props?: any){
         super(scope, id);
 
         const api = new appsync.GraphqlApi(this, "graph_api",{
             name: "produncts",
-            schema: appsync.Schema.fromAsset("./schema/products.gql"),
+            schema: appsync.Schema.fromAsset("lib/appsync/schema/products.gql"),
             authorizationConfig: {
                 defaultAuthorization:{
                     authorizationType: appsync.AuthorizationType.API_KEY,
@@ -16,6 +20,9 @@ export class appsync_api extends cdk.Construct {
                     }
                 }
             }
-        })
+        });
+
+        this.api_endpoint = api.name
+
     }
 }
