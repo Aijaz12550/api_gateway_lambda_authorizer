@@ -3,8 +3,8 @@ import * as appsync from "@aws-cdk/aws-appsync";
 
 export class AppsyncApi extends cdk.Construct {
 
-    public readonly api_endpoint: string
-    public readonly apiKey: string
+    public readonly api_endpoint: string;
+    public readonly apiKey: string | undefined;
 
     constructor(scope: cdk.App, id: string, props?: any){
         super(scope, id);
@@ -22,7 +22,8 @@ export class AppsyncApi extends cdk.Construct {
             }
         });
 
-        this.api_endpoint = api.name
+        this.api_endpoint = api.name;
+        this.apiKey = api.apiKey
 
     }
 }

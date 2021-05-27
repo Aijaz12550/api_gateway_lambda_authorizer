@@ -7,7 +7,9 @@ import * as apigw from "@aws-cdk/aws-apigateway";
 import * as iam from "@aws-cdk/aws-iam";
 import * as cognito from "@aws-cdk/aws-cognito";
 import { dynamodb_stack } from "./dynamodb";
-import { AppsyncApi } from "./appsync"
+import { AppsyncApi } from "./appsync";
+import * as wss from "@aws-cdk/aws-apigatewayv2";
+import * as wssIntegration from "@aws-cdk/aws-apigatewayv2-integrations";
 export class LambdaAuthorizerStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -32,6 +34,9 @@ export class LambdaAuthorizerStack extends cdk.Stack {
       handler: "index.hello_world",
       runtime: lambda.Runtime.NODEJS_14_X,
       functionName: "testing_function",
+      environment: {
+        TABLE_NAME: dynamoTable.tableName
+      }
     });
 
     const authorizerFunc = new lambda.Function(this, "authorizer_func", {
@@ -61,12 +66,25 @@ export class LambdaAuthorizerStack extends cdk.Stack {
       identitySource: "method.request.header.Authorization",
       restApiId: api.restApiId,
     });
-
     let item = api.root.addResource("test");
     item.addMethod("get", new apigw.LambdaIntegration(helloWorld), {
       authorizationType: apigw.AuthorizationType.CUSTOM,
       authorizer: { authorizerId: auth.ref },
     });
+
+
+
+    // API GATEWAY WEBSOCKETS
+
+    let webSocketApi = new wss.WebSocketApi(this, "webSocketApi");
+
+    webSocketApi.addRoute("testingApi",{
+      integration: new wssIntegration.LambdaWebSocketIntegration({
+        handler: helloWorld as any
+      })
+    })
+    
+
 
     //  ***************************** COGNITO AUTHORIZER ********************************************
 
@@ -140,8 +158,7 @@ export class LambdaAuthorizerStack extends cdk.Stack {
     const apiKey = new apigw.ApiKey(this, "api_key",{
       apiKeyName,
       enabled: true,
-      description: "TCIQ API Key to create usage plane"
-
+      description: "TCIQ API Key to create usage plane",
     })
 
     api.addApiKey("tciq_api_key_added",{
@@ -159,7 +176,8 @@ export class LambdaAuthorizerStack extends cdk.Stack {
 
     // output
      new cdk.CfnOutput(this, "user_pool_id",{
-      value: userPool.userPoolId
+      value: userPool.userPoolId,
+      exportName: "UserPoolId"
     }) 
 
     new cdk.CfnOutput(this, "cognito auth api",{
@@ -172,6 +190,11 @@ export class LambdaAuthorizerStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "appsync_api_endpoint",{
       value: appsyncApi.api_endpoint
+    })
+
+    new cdk.CfnOutput(this, "appsync_api_key",{
+      exportName: "apiKey1",
+      value: appsyncApi.apiKey as any
     })
 
     
