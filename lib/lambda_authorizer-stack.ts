@@ -10,6 +10,7 @@ import { dynamodb_stack } from "./dynamodb";
 import { AppsyncApi } from "./appsync";
 import * as wss from "@aws-cdk/aws-apigatewayv2";
 import * as wssIntegration from "@aws-cdk/aws-apigatewayv2-integrations";
+import { Loadbalancer } from "./load_balancer"
 export class LambdaAuthorizerStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -19,6 +20,9 @@ export class LambdaAuthorizerStack extends cdk.Stack {
 
     // Appsync api
     let appsyncApi = new AppsyncApi(this as any , "appsync_api");
+
+    let lb = new Loadbalancer(this as any, "loadbalancer");
+
 
     const queue = new sqs.Queue(this, "LambdaAuthorizerQueue", {
       visibilityTimeout: cdk.Duration.seconds(300),
@@ -195,6 +199,11 @@ export class LambdaAuthorizerStack extends cdk.Stack {
     new cdk.CfnOutput(this, "appsync_api_key",{
       exportName: "apiKey1",
       value: appsyncApi.apiKey as any
+    })
+
+    new cdk.CfnOutput(this, "load_balancing",{
+      exportName: "loadBalancing",
+      value: lb.vpcName
     })
 
     
